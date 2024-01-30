@@ -1,4 +1,4 @@
-import random
+import time
 
 from E22 import E22
 
@@ -21,11 +21,12 @@ def send(port):
     lora.close()
 
 
-def send_random(port):
+def send_spam(port):
     lora = E22(port)
 
     while True:
-        lora.send(f'{random.randint(0, 255)}\n'.encode())
-        lora.ser.read()
+        for i in range(16):
+            lora.send(f'SPAM'.encode())
+        time.sleep(2.5)
 
     lora.close()
