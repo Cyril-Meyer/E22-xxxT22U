@@ -121,20 +121,22 @@ class Config:
         self.reg2 = bytearray([chan])
 
     def set_rssi_bytes(self, enable=False):
-        # REG3 bits 7
-        raise NotImplementedError
+        # REG3 bits 7 (= packet RSSI)
+        self.reg3[0] = set_bit(self.reg3[0], 7, enable)
 
-    def set_transmission_method(self):
+    def set_transmission_method_fixed(self, fixed=False):
         # REG3 bits 6
-        raise NotImplementedError
+        self.reg3[0] = set_bit(self.reg3[0], 6, fixed)
 
     def set_relay_function(self, enable=False):
         # REG3 bits 5
-        raise NotImplementedError
+        self.reg3[0] = set_bit(self.reg3[0], 5, enable)
 
     def set_listened_before_transmitting(self, enable=False):
         # REG3 bits 4
-        raise NotImplementedError
+        self.reg3[0] = set_bit(self.reg3[0], 4, enable)
+
+    # REG3 bits 3, 2, 1, 0 are reserved
 
     def set_key(self, key: bytearray):
         assert len(key) == 2
