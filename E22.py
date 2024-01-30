@@ -45,17 +45,38 @@ class Config:
         assert len(netid) == 1
         self.netid = netid[0:1]
 
-    def set_serial_baud(self):
+    def set_serial_baud(self, baudrate=9600):
         # REG0 bits 7,6,5
-        raise NotImplementedError
+        assert baudrate in [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
+        if baudrate in [1200, 2400, 4800, 9600]:
+            self.reg0[0] = set_bit(self.reg0[0], 7, False)
+        else:
+            self.reg0[0] = set_bit(self.reg0[0], 7, True)
+        if baudrate in [1200, 2400, 19200, 38400]:
+            self.reg0[0] = set_bit(self.reg0[0], 6, False)
+        else:
+            self.reg0[0] = set_bit(self.reg0[0], 6, True)
+        if baudrate in [1200, 4800, 19200, 57600]:
+            self.reg0[0] = set_bit(self.reg0[0], 5, False)
+        else:
+            self.reg0[0] = set_bit(self.reg0[0], 5, True)
 
-    def set_serial_parity(self):
+    def set_serial_parity(self, parity='8N1'):
         # REG0 bits 4,3
-        raise NotImplementedError
+        assert parity in ['8N1', '801', '8E1']
+        self.reg0[0] = set_bits(self.reg0[0], [4, 3], [False, False])
+        if parity == '801':
+            self.reg0[0] = set_bit(self.reg0[0], 3, True)
+        if parity == '8E1':
+            self.reg0[0] = set_bit(self.reg0[0], 4, True)
 
-    def set_wireless_speed(self):
+    def set_wireless_speed(self, speed=2):
+        assert type(speed) is int
+        assert 0 < speed < 8
         # REG0 bits 2,1,0
-        raise NotImplementedError
+        self.reg0[0] = set_bits(self.reg0[0],
+                                [2, 1, 0],
+                                [True if speed & (1 << (2 - n)) else False for n in range(3)])
 
     def set_packet_size(self, size=240):
         # REG1 bits 7,6
