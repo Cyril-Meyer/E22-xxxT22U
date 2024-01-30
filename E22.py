@@ -2,6 +2,8 @@ import time
 
 import serial
 
+from utils import set_bit, set_bits
+
 
 class Config:
     def __init__(self):
@@ -41,7 +43,7 @@ class Config:
     def set_netid(self, netid: bytearray):
         # NETID
         assert len(netid) == 1
-        self.address = netid[0:1]
+        self.netid = netid[0:1]
 
     def set_serial_baud(self):
         # REG0 bits 7,6,5
@@ -59,36 +61,23 @@ class Config:
         # REG1 bits 7,6
         assert size in [240, 128, 64, 32]
         if size == 240:
-            self.reg1[0] = self.reg1[0] & ~(1 << 7)
-            self.reg1[0] = self.reg1[0] & ~(1 << 6)
+            self.reg1[0] = set_bits(self.reg1[0], [7, 6], [False, False])
         if size == 128:
-            self.reg1[0] = self.reg1[0] & ~(1 << 7)
-            self.reg1[0] = self.reg1[0] | (1 << 6)
+            self.reg1[0] = set_bits(self.reg1[0], [7, 6], [False, True])
         if size == 64:
-            self.reg1[0] = self.reg1[0] | (1 << 7)
-            self.reg1[0] = self.reg1[0] & ~(1 << 6)
+            self.reg1[0] = set_bits(self.reg1[0], [7, 6], [True, False])
         if size == 32:
-            self.reg1[0] = self.reg1[0] | (1 << 7)
-            self.reg1[0] = self.reg1[0] | (1 << 6)
+            self.reg1[0] = set_bits(self.reg1[0], [7, 6], [True, True])
 
     def set_rssi_env_noise(self, enable=False):
-        # REG1 bits 5
-        bit_index = 5
-        if enable:
-            self.reg1[0] = self.reg1[0] | (1 << bit_index)
-        else:
-            self.reg1[0] = self.reg1[0] & ~(1 << bit_index)
-        raise NotImplementedError
+        # REG1 bits 5 (= channel RSSI)
+        self.reg1[0] = set_bit(self.reg1[0], 5, enable)
 
     # REG1 bits 4,3 are reserved
 
     def set_software_mode_switching(self, enable=False):
         # REG1 bits 2
-        bit_index = 2
-        if enable:
-            self.reg1[0] = self.reg1[0] | (1 << bit_index)
-        else:
-            self.reg1[0] = self.reg1[0] & ~(1 << bit_index)
+        self.reg1[0] = set_bit(self.reg1[0], 2, enable)
 
     def set_transmitting_power(self):
         # REG1 bits 1,0
@@ -146,30 +135,30 @@ class E22:
         # C1 00 -> FF FF FF
         time.sleep(delay)
         self.ser.write(bytearray.fromhex('C100'))
-        data = self.ser.read(3)
+        data = bytearray(self.ser.read(3))
         if not data == b'\xff\xff\xff':
-            raise Exception('config_get: check connectivity')
+            raise Exception('config_get: check connectivity', data)
 
         # Read configuration
         # C1 00 09 -> C1 00 09 + 9 bytes configuration
         time.sleep(delay)
         self.ser.write(bytearray.fromhex('C10009'))
-        data = self.ser.read(12)
+        data = bytearray(self.ser.read(12))
         if not len(data) == 12:
-            raise Exception('config_get: read config')
+            raise Exception('config_get: read config', data)
 
-        return bytearray(data[3:])
+        return data[3:]
 
     def config_get_pid(self, delay=0.1) -> bytearray:
         # Read PID
         # C1 80 07 -> C1 80 07 + 7 bytes PID
         time.sleep(delay)
         self.ser.write(bytearray.fromhex('C18007'))
-        data = self.ser.read(10)
+        data = bytearray(self.ser.read(10))
         if not len(data) == 10:
-            raise Exception('config_get_pid')
+            raise Exception('config_get_pid', data)
 
-        return bytearray(data[3:])
+        return data[3:]
 
     def config_set(self, config: bytearray, delay=0.1):
         assert len(config) == 9
@@ -177,17 +166,17 @@ class E22:
         # C1 00 -> FF FF FF
         time.sleep(delay)
         self.ser.write(bytearray.fromhex('C100'))
-        data = self.ser.read(3)
+        data = bytearray(self.ser.read(3))
         if not data == b'\xff\xff\xff':
-            raise Exception('config_set: check connectivity')
+            raise Exception('config_set: check connectivity', data)
 
         # Set configuration
         # C0 00 09 + 9 bytes configuration -> C1 00 09 + 9 bytes configuration
         time.sleep(delay)
         self.ser.write(bytearray.fromhex('C00009') + config)
-        data = self.ser.read(12)
+        data = bytearray(self.ser.read(12))
         if not len(data) == 12 or not bytearray(data) == bytearray.fromhex('C10009') + config:
-            raise Exception('config_set: set config')
+            raise Exception('config_set: set config', data)
 
     def software_mode_switch(self, mode, delay=0.1):
         assert mode in ['transmission', 'configuration']
@@ -196,10 +185,10 @@ class E22:
             self.ser.write(bytearray.fromhex('C0C1C2C30200'))
         if mode == 'configuration':
             self.ser.write(bytearray.fromhex('C0C1C2C30201'))
-        data = self.ser.read(5)
+        data = bytearray(self.ser.read(5))
         if not len(data) == 5:
-            raise Exception('software_mode_switch')
-        if mode == 'transmission' and not bytearray(data) == bytearray.fromhex('C1C2C30200'):
-            raise Exception('software_mode_switch: not set')
-        if mode == 'configuration' and not bytearray(data) == bytearray.fromhex('C1C2C30201'):
-            raise Exception('software_mode_switch: not set')
+            raise Exception('software_mode_switch: software mode switct not enabled', data)
+        if mode == 'transmission' and not data == bytearray.fromhex('C1C2C30200'):
+            raise Exception('software_mode_switch: not set', data)
+        if mode == 'configuration' and not data == bytearray.fromhex('C1C2C30201'):
+            raise Exception('software_mode_switch: not set', data)
