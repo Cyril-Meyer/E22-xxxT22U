@@ -14,6 +14,7 @@ if __name__ == '__main__':
     parser.add_argument('--recv', action='store_true', help='read serial')
     # write
     parser.add_argument('--send', action='store_true', help='write serial')
+    parser.add_argument('--send-random', action='store_true', help='send random data')
     # software mode
     parser.add_argument('--enable-software-mode-switch', action='store_true', help='enable software mode switch')
     parser.add_argument('--software-mode-switch', action='store_true', help='example software mode switch')
@@ -34,6 +35,10 @@ if __name__ == '__main__':
     if args.send:
         print('> SEND')
         examples.basic.send(args.port)
+
+    if args.send_random:
+        print('> SEND')
+        examples.basic.send_random(args.port)
 
     if args.enable_software_mode_switch:
         print('> ENABLE SOFTWARE MODE SWITCH')
