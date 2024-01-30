@@ -6,7 +6,9 @@ from utils import set_bit, set_bits
 
 
 class Config:
-    def __init__(self):
+    def __init__(self, model='400T22U'):
+        assert model in ['230T22U', '400T22U', '900T22U']
+        self.model = model
         # 00H : ADDH, 01H : ADDL
         self.address = bytearray.fromhex('0000')
         # 02H : NETID
@@ -36,18 +38,18 @@ class Config:
         self.crypt = data[7:9]
 
     def set_address(self, address: bytearray):
-        # ADDH and ADDL
         assert len(address) == 2
+        # ADDH and ADDL
         self.address = address[0:2]
 
     def set_netid(self, netid: bytearray):
-        # NETID
         assert len(netid) == 1
+        # NETID
         self.netid = netid[0:1]
 
     def set_serial_baud(self, baudrate=9600):
-        # REG0 bits 7,6,5
         assert baudrate in [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
+        # REG0 bits 7,6,5
         if baudrate in [1200, 2400, 4800, 9600]:
             self.reg0[0] = set_bit(self.reg0[0], 7, False)
         else:
@@ -62,8 +64,8 @@ class Config:
             self.reg0[0] = set_bit(self.reg0[0], 5, True)
 
     def set_serial_parity(self, parity='8N1'):
-        # REG0 bits 4,3
         assert parity in ['8N1', '801', '8E1']
+        # REG0 bits 4,3
         self.reg0[0] = set_bits(self.reg0[0], [4, 3], [False, False])
         if parity == '801':
             self.reg0[0] = set_bit(self.reg0[0], 3, True)
@@ -79,8 +81,8 @@ class Config:
                                 [True if speed & (1 << (2 - n)) else False for n in range(3)])
 
     def set_packet_size(self, size=240):
-        # REG1 bits 7,6
         assert size in [240, 128, 64, 32]
+        # REG1 bits 7,6
         if size == 240:
             self.reg1[0] = set_bits(self.reg1[0], [7, 6], [False, False])
         if size == 128:
@@ -108,9 +110,15 @@ class Config:
                                 [1, 0],
                                 [False if power & (1 << (1 - n)) else True for n in range(2)])
 
-    def set_channel(self):
+    def set_channel(self, chan):
+        if self.model == '230T22U':
+            assert 0 <= chan <= 64
+        if self.model == '400T22U':
+            assert 0 <= chan <= 83
+        if self.model == '900T22U':
+            assert 0 <= chan <= 80
         # REG2
-        raise NotImplementedError
+        self.reg2 = bytearray([chan])
 
     def set_rssi_bytes(self, enable=False):
         # REG3 bits 7
