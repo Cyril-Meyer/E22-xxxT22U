@@ -53,6 +53,23 @@ user manual : [E22-xxxT22U.pdf](docs/E22-xxxT22U_UserManual.pdf) (page 13 to 16)
 The `E22.Config` class allow you to edit each option of the configuration
 individually.
 
+#### Implemented E22 options
+* `set_address`
+* `set_netid`
+* `set_serial_baud`
+* `set_serial_parity`
+* `set_wireless_speed`
+* `set_packet_size`
+* `set_rssi_env_noise`
+* `set_software_mode_switching`
+* `set_transmitting_power`
+* `set_channel`
+* `set_rssi_bytes`
+* `set_transmission_method_fixed`
+* `set_relay_function`
+* `set_listened_before_transmitting`
+* `set_key`
+
 #### Software mode switching
 To enable software mode switching, put your E22 in configuration mode using the
 side button, then run the activation example :
@@ -67,12 +84,33 @@ python run_example.py --port COMX --software-mode-switch
 **🚧 WORK IN PROGRESS 🚧 TODO : ADD MORE ADVANCED CONFIGURATION EXAMPLES**
 
 ### Examples
+Example with one E22 on port `COM5` and one on port `COM7`:
 
 #### Basic transmission example
-Example with one E22 on port `COM5` and one on port `COM7`:
 ```
 python run_example.py --port COM5 --recv
 python run_example.py --port COM7 --send
+```
+
+**send spam data**
+```
+python run_example.py --port COM5 --send-spam
+```
+
+#### RSSI
+```
+python run_example.py --port COM7 --rssi
+RSSI : Ambient=-87.5 dBm LastRecv=0.0 dBm
+RSSI : Ambient=-88.0 dBm LastRecv=0.0 dBm
+RSSI : Ambient=0.0 dBm LastRecv=0.0 dBm         <--- SPAM FROM ANOTHER E22
+RSSI : Ambient=-88.0 dBm LastRecv=0.0 dBm
+RSSI : Ambient=-88.0 dBm LastRecv=0.0 dBm
+RSSI : Ambient=-88.0 dBm LastRecv=0.0 dBm
+RSSI : Ambient=-88.0 dBm LastRecv=0.0 dBm
+RSSI : Ambient=-88.0 dBm LastRecv=0.0 dBm
+RSSI : Ambient=0.0 dBm LastRecv=0.0 dBm         <--- SPAM FROM ANOTHER E22
+RSSI : Ambient=-88.0 dBm LastRecv=0.0 dBm
+RSSI : Ambient=-88.0 dBm LastRecv=0.0 dBm
 ```
 
 **🚧 WORK IN PROGRESS 🚧 TODO : ADD MORE EXAMPLES**
