@@ -164,8 +164,15 @@ class E22:
     def close(self):
         self.ser.close()
 
-    def get_rssi_env_noise(self):
-        raise NotImplementedError
+    def get_rssi_env_noise(self, delay=0.2):
+        time.sleep(delay)
+        self.ser.write(bytearray.fromhex('C0C1C2C30002'))
+        time.sleep(delay)
+        data = bytearray(self.ser.read(self.ser.in_waiting))
+        print(data)
+        if len(data) == 0:
+            return 'RSSI NOT ENABLED'
+        return f'RSSI : Ambient={-data[3]/2} dBm LastRecv={-data[4]/2} dBm'
 
     # ----- E22 CONFIGURATION -----
     def config_get(self, delay=0.1) -> bytearray:
@@ -223,6 +230,7 @@ class E22:
             self.ser.write(bytearray.fromhex('C0C1C2C30200'))
         if mode == 'configuration':
             self.ser.write(bytearray.fromhex('C0C1C2C30201'))
+        time.sleep(delay)
         data = bytearray(self.ser.read(5))
         if not len(data) == 5:
             raise Exception('software_mode_switch: software mode switct not enabled', data)
