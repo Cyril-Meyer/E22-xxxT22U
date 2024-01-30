@@ -169,7 +169,6 @@ class E22:
         self.ser.write(bytearray.fromhex('C0C1C2C30002'))
         time.sleep(delay)
         data = bytearray(self.ser.read(self.ser.in_waiting))
-        print(data)
         if len(data) == 0:
             return 'RSSI NOT ENABLED'
         return f'RSSI : Ambient={-data[3]/2} dBm LastRecv={-data[4]/2} dBm'
