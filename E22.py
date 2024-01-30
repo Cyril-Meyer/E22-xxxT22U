@@ -72,7 +72,7 @@ class Config:
 
     def set_wireless_speed(self, speed=2):
         assert type(speed) is int
-        assert 0 < speed < 8
+        assert 0 <= speed < 8
         # REG0 bits 2,1,0
         self.reg0[0] = set_bits(self.reg0[0],
                                 [2, 1, 0],
@@ -100,9 +100,13 @@ class Config:
         # REG1 bits 2
         self.reg1[0] = set_bit(self.reg1[0], 2, enable)
 
-    def set_transmitting_power(self):
+    def set_transmitting_power(self, power=3):
+        assert type(power) is int
+        assert 0 <= power < 4
         # REG1 bits 1,0
-        raise NotImplementedError
+        self.reg1[0] = set_bits(self.reg1[0],
+                                [1, 0],
+                                [False if power & (1 << (1 - n)) else True for n in range(2)])
 
     def set_channel(self):
         # REG2
@@ -149,6 +153,9 @@ class E22:
 
     def close(self):
         self.ser.close()
+
+    def get_rssi_env_noise(self):
+        raise NotImplementedError
 
     # ----- E22 CONFIGURATION -----
     def config_get(self, delay=0.1) -> bytearray:
