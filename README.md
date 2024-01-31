@@ -7,6 +7,22 @@ This project aims to make them usable as simply as possible.
 This library should work on any Windows, Linux, or Mac computer that has a
 working Python setup.
 
+### Quick demo
+```python
+# init
+lora = E22('COM5')
+# config
+cfg = Config()
+cfg.set(lora.config_get())
+cfg.set_address(bytearray.fromhex('1234'))
+cfg.software_mode_switch('transmission')
+lora.config_set(cfg.get())
+# send message
+lora.send('XXX'.encode())
+# recv message and print
+lora.recv_print()
+```
+
 ## Description
 
 Ebyte E22-xxxT22U series are a new generation of LoRa wireless spread spectrum
