@@ -37,15 +37,15 @@ class Config:
         self.reg3 = data[6:7]
         self.crypt = data[7:9]
 
-    def set_address(self, address: bytearray):
-        assert len(address) == 2
+    def set_address(self, address: int):
+        assert 0 <= address <= 0xFFFF
         # ADDH and ADDL
-        self.address = address[0:2]
+        self.address = address.to_bytes(2, 'big')
 
-    def set_netid(self, netid: bytearray):
-        assert len(netid) == 1
+    def set_netid(self, netid: int):
+        assert 0 <= netid <= 0xFF
         # NETID
-        self.netid = netid[0:1]
+        self.netid = netid.to_bytes(1, 'big')
 
     def set_serial_baud(self, baudrate=9600):
         assert baudrate in [1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200]
